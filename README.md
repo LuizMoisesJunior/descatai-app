@@ -48,3 +48,8 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+Todos os arquivos vão terminar com .tsx
+App / 
+   tabs : dentro dessa pasta vai todas as paginas
+   pra que a tela fique acessivel tem que adicionar um Tabs.Screen no layout.tsx assim você cria um novo menu acessavel ver report.tsx como exemplo
