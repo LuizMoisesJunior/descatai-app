@@ -1,95 +1,143 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Reporte {
   id: string,
   titulo: string
 }
-export default function TelaReporte() {
 
-  // ==========================================
-  // 🧠 PARTE LÓGICA (Equivalente ao .component.ts)
-  // ==========================================
+export default function TelaReporte() {
   const [reportes, setReportes] = useState<Reporte[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
-  //Iniciador
+  
+  const add = () => {
+    console.log(`Adicionando um novo item`);
+  };
+
   useEffect(() => {
     carregarDados();
   }, []);
 
-
   const carregarDados = () => {
-      // mock carregando ficticio para simular a busca
     setTimeout(() => {
       const dadosFicticios: Reporte[] = [
         { id: '1', titulo: 'Lixo na água' },
         { id: '2', titulo: 'escombros perto da escola' },
         { id: '3', titulo: 'Sacolas na grama' },
       ];
-
-      // Atualiza os estados (equivalente a mudar o valor da variável no Angular)
       setReportes(dadosFicticios);
-      
       setCarregando(false);
     }, 2000);
-
-  }
-
+  };
 
   return (
-    // ==========================================
-    // 🖼️ PARTE VISÍVEL / TEMPLATE (Equivalente ao .component.html)
-    // ==========================================
     <View style={styles.container}>
-      <Text style={styles.texto}>Tela de Reporte</Text>
+      <View style={styles.cabecalho}>
+        <TouchableOpacity style={styles.botaoVoltar} onPress={() => console.log('Voltar')}>
+          <Text style={styles.textoBotaoVoltar}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.texto}>Reporte</Text>
+      </View>
 
-      {/* 
-        EQUIVALENTE AO *ngIf="carregando; else listaTemplate"
-        Exibe um spinner de carregamento nativo se estiver buscando os dados
-      */}
       {carregando ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        // Renderiza a lista após o carregamento (equivalente ao *ngFor)
-        reportes.map((item) => (
-          <View key={item.id} style={styles.cardItem}>
-            <Text style={styles.textoItem}>{item.titulo}</Text>
-          </View>
-        ))
-      )}
+        <FlatList
+          data={reportes}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            /* 1. MUDANÇA ESTRUTURAL AQUI */
+            <View style={styles.cardItem}>
+              {/* O flex: 1 garante que textos longos quebrem linha sem empurrar os botões */}
+              <Text style={styles.textoItem} numberOfLines={1}>{item.titulo}</Text>
+              
+              {/* Contêiner para agrupar os botões quadrados do lado direito */}
+              <View style={styles.containerBotoesAcao}>
+                {/* Primeiro botão quadrado (Olho) */}
+                <TouchableOpacity style={styles.botaoQuadrado} onPress={() => console.log('Visualizar')}>
+                  <Ionicons name="eye-outline" size={20} color="#007AFF" />
+                </TouchableOpacity>
 
+                {/* Segundo botão quadrado (Exemplo: Lixeira/Deletar) */}
+                <TouchableOpacity style={styles.botaoQuadrado} onPress={() => console.log('Deletar')}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          style={styles.lista}
+        />
+      )}
+      <Button color="#09ff0099" title='+' onPress={add} ></Button>
     </View>
   );
 }
 
-// ==========================================
-// 🎨 ESTILIZAÇÃO / CSS (Equivalente ao .component.css)
-// ==========================================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#f5f5f5',
     padding: 20,
+    paddingTop: 60,
+  },
+  lista: {
+    width: '100%',
   },
   texto: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 20,
+    textAlign: 'center',
   },
+  /* 2. NOVOS E AJUSTADOS ESTILOS ABAIXO */
   cardItem: {
     backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 12,
     width: '100%',
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ddd',
+    flexDirection: 'row',        // Organiza texto e bloco de botões lado a lado
+    alignItems: 'center',        // Centraliza verticalmente o texto e os botões
+    justifyContent: 'space-between', // Joga o texto para a esquerda e botões para a direita
   },
   textoItem: {
     fontSize: 16,
+    color: '#333',
+    flex: 1,                     // Permite que o texto ocupe o espaço restante disponível
+    marginRight: 10,             // Evita que o texto encoste nos botões
+  },
+  containerBotoesAcao: {
+    flexDirection: 'row',        // Coloca os botões quadrados lado a lado
+    gap: 8,                      // Espaçamento entre os dois botões quadrados
+  },
+  botaoQuadrado: {
+    width: 38,                   // Altura e largura idênticas para formar o quadrado
+    height: 38,
+    borderRadius: 8,             // Cantos arredondados suaves idênticos ao mockup
+    borderWidth: 1,
+    borderColor: '#ddd',         // Borda fina cinza idêntica ao desenho
+    alignItems: 'center',        // Centraliza o ícone horizontalmente
+    justifyContent: 'center',   // Centraliza o ícone verticalmente
+    backgroundColor: '#fafafa',  // Um fundo leve para destacar o botão do card
+  },
+  cabecalho: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  botaoVoltar: {
+    padding: 10,
+    marginRight: 15,
+  },
+  textoBotaoVoltar: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#333',
   },
 });
