@@ -1,10 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { ComponentProps, useEffect, useState } from 'react';
 import { ActivityIndicator, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Reporte {
   id: string,
   titulo: string
+}
+
+export interface AcaoItem {
+  nome: string;
+  label: string;
+  buttonColor:any
+  iconName: ComponentProps<typeof Ionicons>['name']; // Garante apenas ícones válidos
+  visible: (document: any) => boolean;  
+  command: (item: Reporte) => void; // <--- O padrão Command aqui
 }
 
 export default function TelaReporte() {
@@ -14,6 +23,32 @@ export default function TelaReporte() {
   const add = () => {
     console.log(`Adicionando um novo item`);
   };
+ const view = (item: Reporte) => {
+    console.log(`Visualizar: ${item.titulo}`);
+  };
+
+  const remove = (item: Reporte) => {
+    console.log(`Remover: ${item.titulo}`);
+  };
+
+  const acoes: AcaoItem[] = [
+    {
+      nome: 'view',
+      label: 'Visualizar',
+      iconName: 'eye-outline',
+      buttonColor:'#007AFF',
+      visible: (document) => true,
+      command: view // <--- Referência direta para a função local
+    },
+    {
+      nome: 'remove',
+      label: 'Remover',
+      iconName: 'trash-outline',
+      buttonColor:'#FF3B30',
+      visible: (document) => true,
+      command: remove // <--- Referência direta para a função local
+    },
+  ];
 
   useEffect(() => {
     carregarDados();
@@ -52,18 +87,25 @@ export default function TelaReporte() {
               {/* O flex: 1 garante que textos longos quebrem linha sem empurrar os botões */}
               <Text style={styles.textoItem} numberOfLines={1}>{item.titulo}</Text>
               
-              {/* Contêiner para agrupar os botões quadrados do lado direito */}
-              <View style={styles.containerBotoesAcao}>
-                {/* Primeiro botão quadrado (Olho) */}
-                <TouchableOpacity style={styles.botaoQuadrado} onPress={() => console.log('Visualizar')}>
-                  <Ionicons name="eye-outline" size={20} color="#007AFF" />
-                </TouchableOpacity>
+              {acoes.length > 0 ? (
+                <View style={styles.containerBotoesAcao}>
+                  {acoes.map((acao) => {
+            // Executa a validação dinâmica de visibilidade para cada item
+            if (!acao.visible(item)) return null;
 
-                {/* Segundo botão quadrado (Exemplo: Lixeira/Deletar) */}
-                <TouchableOpacity style={styles.botaoQuadrado} onPress={() => console.log('Deletar')}>
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                </TouchableOpacity>
-              </View>
+            return (
+              <TouchableOpacity 
+                key={acao.nome} 
+                style={styles.botaoQuadrado} 
+                onPress={() => acao.command(item)} // <--- Correção: Executa a função passando o item atual
+              >
+                <Ionicons name={acao.iconName} size={20} color={acao.buttonColor} />
+              </TouchableOpacity>
+            );
+          })}
+                </View>
+              ) : null}
+            
             </View>
           )}
           style={styles.lista}
