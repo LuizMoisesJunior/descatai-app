@@ -30,7 +30,7 @@ export default function TelaReporte() {
   
   // CORREÇÃO 1: Estado declarado corretamente
   const [selectedDocument, setSelectedDocument] = useState<Reporte>(emptyDocument);
-  const [isViewingMode, setIsViewingMode] = useState<boolean>(true)
+  const [isViewingMode, setIsViewingMode] = useState<boolean>(false)
   const titulo = "Reporte";
 
   //funcoes
@@ -39,9 +39,9 @@ export default function TelaReporte() {
   };
 
   const closeModal = () => {
-    setSelectedDocument(emptyDocument);
-    setIsViewingMode(true);
     setFormIsVisible(false);
+    setIsViewingMode(false);
+    setSelectedDocument(emptyDocument);
   };
 
   const saveModal = () =>{
@@ -76,11 +76,14 @@ export default function TelaReporte() {
     console.log(`Visualizar: ${item.assunto}`);
     let index = documents.findIndex((document:any)=>document.id ===item.id);
     setSelectedDocument(documents[index])
+    setIsViewingMode(true)
     openModalForm(); // Abre o modal para visualizar/editar
   };
 
   const remove = (item: Reporte) => {
+    //chamar a api para remover do banco
     console.log(`Remover: ${item.assunto}`);
+    //remover da lista
     setDocuments(prev => prev.filter(doc => doc.id !== item.id));
   };
 
@@ -190,7 +193,7 @@ export default function TelaReporte() {
             <TextInput 
               style={styles.input}
               value={selectedDocument.assunto}
-              editable={isViewingMode}
+              editable={!isViewingMode}
               onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
               placeholder="Digite o assunto"
             />
@@ -200,9 +203,13 @@ export default function TelaReporte() {
               <TouchableOpacity style={[styles.botaoModal, styles.botaoFechar]} onPress={closeModal}>
                 <Text style={styles.textoBotaoModal}>Fechar</Text>
               </TouchableOpacity>
+              {!isViewingMode ? 
               <TouchableOpacity style={[styles.botaoModal, styles.botaoSalvar]} onPress={saveModal}>
-                <Text style={styles.textoBotaoModal}>Salvar</Text>
-              </TouchableOpacity>
+              <Text style={styles.textoBotaoModal}>Salvar</Text>
+            </TouchableOpacity>
+            : null
+            }
+
             </View>
           </View>
         </View>
