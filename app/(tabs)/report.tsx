@@ -1,10 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { ComponentProps, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
 export interface Reporte {
   id: string;
   assunto: string;
+  categoria?: number
+  cep?: string
+  cidade?: string
+  logradouro?: string
+  rua?: string
+  numero?: string 
+  complemento?: string
+  descricao?: string
 }
 
 export interface AcaoItem {
@@ -23,15 +31,29 @@ const emptyDocument: Reporte = {
 
 export default function TelaReporte() {
 
-//variaveis
+  //variaveis
   const [documents, setDocuments] = useState<Reporte[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [formIsVisible, setFormIsVisible] = useState<boolean>(false);
-  
+
   // CORREÇÃO 1: Estado declarado corretamente
   const [selectedDocument, setSelectedDocument] = useState<Reporte>(emptyDocument);
   const [isViewingMode, setIsViewingMode] = useState<boolean>(true)
   const titulo = "Reporte";
+  const categoryOptions = [
+    {
+      value: 1,
+      label: 'Descarte Indevido'
+    },
+    {
+      value: 2,
+      label: 'Lixo Aculmulado'
+    },
+    {
+      value: 3,
+      label: 'Outros'
+    },
+  ]
 
   //funcoes
   const openModalForm = (item?: Reporte) => {
@@ -44,7 +66,7 @@ export default function TelaReporte() {
     setFormIsVisible(false);
   };
 
-  const saveModal = () =>{
+  const saveModal = () => {
     setCarregando(true);
     //atualizar na api
     //chamar  endpoint para salvar
@@ -52,12 +74,12 @@ export default function TelaReporte() {
 
     //atualizar na lista
     //busca o indice em que o documento esta caso nao achar essa funcao retorna -1
-    let index = documents.findIndex((item:any)=> item.id == selectedDocument.id)
+    let index = documents.findIndex((item: any) => item.id == selectedDocument.id)
     let documetsToSave = documents;
-    if(index < 0) {
+    if (index < 0) {
       //adicionando na lista
       documetsToSave.push(selectedDocument);
-    }else {
+    } else {
       //atualizando item na lista
       documetsToSave[index] = selectedDocument;
     }
@@ -74,7 +96,7 @@ export default function TelaReporte() {
 
   const view = (item: Reporte) => {
     console.log(`Visualizar: ${item.assunto}`);
-    let index = documents.findIndex((document:any)=>document.id ===item.id);
+    let index = documents.findIndex((document: any) => document.id === item.id);
     setSelectedDocument(documents[index])
     openModalForm(); // Abre o modal para visualizar/editar
   };
@@ -176,25 +198,93 @@ export default function TelaReporte() {
             -pegar localizacao pelo sistema
             Campos necessarios : 
             [OK]assunto
-            []categoria
-            []CEP
-            []cidade
-            []Logradouro
-            []rua
-            []numero
-            []complemento
+            [OK]categoria
+            [OK]CEP
+            [OK]cidade
+            [OK]Logradouro
+            [OK]rua
+            [OK]numero
+            [OK]complemento
             []descricao
              
             */}
             <Text style={styles.labelInput}>Assunto</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
               value={selectedDocument.assunto}
               editable={isViewingMode}
               onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
               placeholder="Digite o assunto"
             />
-            
+            <Text style={styles.labelInput}>Categoria</Text>
+            <Picker
+              selectedValue={selectedDocument.categoria}
+              mode="dropdown" 
+            >
+              <Picker.Item label="Selecione uma opção..." value={null} />
+              {categoryOptions.map((option: any) => (
+                <Picker.Item label={option.label} value={option.value} />
+              )
+              )}
+            </Picker>
+            <Text style={styles.labelInput}>CEP</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.cep}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o CEP"
+            />
+            <Text style={styles.labelInput}>Cidade</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.cidade}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o assunto"
+            />
+            <Text style={styles.labelInput}>Logradouro</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.logradouro}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o assunto"
+            />
+            <Text style={styles.labelInput}>Rua</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.rua}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o assunto"
+            />
+
+            <Text style={styles.labelInput}>Número</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.numero}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o assunto"
+            />
+            <Text style={styles.labelInput}>Complemento</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedDocument.complemento}
+              editable={isViewingMode}
+              onChangeText={(text) => setSelectedDocument(prev => ({ ...prev, assunto: text }))}
+              placeholder="Digite o assunto"
+            />
+            <Text style={styles.labelInput}>Descrição</Text>
+            <TextInput
+              style={styles.textArea}
+              value={selectedDocument.descricao}
+              placeholder="Digite aqui os detalhes do reporte..."
+              multiline={true}          // Permite quebra de linhas (transforma em textarea)
+              numberOfLines={6}         // Altura inicial baseada em linhas (relevante para Android)
+              textAlignVertical="top"   // Garante que o texto comece no topo (essencial para Android)
+            />
             <View style={styles.containerBotoesModal}>
 
               <TouchableOpacity style={[styles.botaoModal, styles.botaoFechar]} onPress={closeModal}>
@@ -350,5 +440,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    height: 150,                // Define uma altura fixa para a área de texto
+    backgroundColor: '#fff',
   }
 });
