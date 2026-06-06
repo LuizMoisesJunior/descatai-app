@@ -6,15 +6,23 @@ import { reporteService } from '../services/reporte.service';
 export interface Reporte {
   id: string;
   assunto: string;
-  categoria?: number | null
-  cep?: string
-  cidade?: string
-  logradouro?: string
-  rua?: string
-  numero?: string
-  complemento?: string
-  descricao?: string
-  bairro?:string
+  categoria?: number | null;
+
+  usarLocalizacaoAtual?: boolean;
+
+  latitude?: number | null;
+  longitude?: number | null;
+
+  cep?: string;
+  cidade?: string;
+  bairro?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+
+  descricaoLocalizacao?: string;
+
+  descricao?: string;
   fotoUrl?: string;
 }
 

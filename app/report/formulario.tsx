@@ -3,11 +3,11 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { MaskedTextInput } from 'react-native-mask-text';
 import { Reporte } from '../(tabs)/report';
-import { cepService } from '../services/cep.service';
+import { localizacaoService } from '../services/localizacao.service';
 import { reporteService } from '../services/reporte.service';
 
 export default function ReporteFormularioScreen() {
@@ -28,7 +28,11 @@ export default function ReporteFormularioScreen() {
     complemento: '',
     descricao: '',
     fotoUrl: '',
-    categoria: null
+    categoria: null,
+    usarLocalizacaoAtual: false,
+    latitude: null,
+    longitude: null,
+    descricaoLocalizacao: ''
   };
   const categoryOptions = [
     {
@@ -101,14 +105,8 @@ export default function ReporteFormularioScreen() {
     const cepLimpo = valor.replace(/\D/g, '');
 
     if (cepLimpo.length !== 8) return;
-    console.log('cep')
-
     try {
-      const response = await fetch(
-        `https://viacep.com.br/ws/${cepLimpo}/json/`
-      );
-
-      const data = await cepService.buscar(cepLimpo)
+      const data = await localizacaoService.buscarLocalizacaoPorCep(cepLimpo)
       if (!data) {
         throw "cep invalido"
       }
@@ -125,6 +123,28 @@ export default function ReporteFormularioScreen() {
     } catch (error) {
 
       console.error(error);
+    }
+  }
+
+  async function obterLocalizacaoAtual() {
+    try {
+      let localizacao = await localizacaoService.obterLocalizacaoAtual()
+
+      setDocumento({
+        ...documento,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
+
+        cep: localizacao.cep,
+        cidade: localizacao.cidade,
+        bairro: localizacao.bairro,
+        logradouro: localizacao.logradouro,
+        numero: localizacao.numero,
+        usarLocalizacaoAtual:true,
+        descricaoLocalizacao: localizacao.endereco,
+      })
+    } catch (error) {
+
     }
   }
 
@@ -184,71 +204,119 @@ export default function ReporteFormularioScreen() {
               />
             ))}
           </Picker>
+
         </View>
-        <Text style={styles.labelInput}>CEP</Text>
-        <MaskedTextInput
-          mask="99999-999"
-          keyboardType="numeric"
-          value={documento.cep}
-          onChangeText={(text) => {
-            setDocumento(prev => ({ ...prev, cep: text }));
 
-            const cepLimpo = text.replace(/\D/g, '');
-
-            if (cepLimpo.length === 8) {
-              buscarCep(text);
-            }
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 20,
           }}
-          style={styles.input}
-          placeholder="00000-000"
-        />
+        >
+          <Text>Usar minha localização atual</Text>
 
-        <Text style={styles.labelInput}>Cidade</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.cidade}
-          editable={!isViewMode}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, cidade: text }))}
-          placeholder="Informe a Cidade"
-        />
-        <Text style={styles.labelInput}>Bairro</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.bairro}
-          editable={!isViewMode}
-          onChangeText={(text) =>
-            setDocumento(prev => ({
-              ...prev,
-              bairro: text
-            }))
-          }
-          placeholder="Informe o Bairro"
-        />
-        <Text style={styles.labelInput}>Logradouro</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.logradouro}
-          editable={!isViewMode}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, logradouro: text }))}
-          placeholder="Informe o Logradouro"
-        />
+          <Switch
+            value={documento.usarLocalizacaoAtual}
+            disabled={isViewMode}
+            onValueChange={(value) => {
+              setDocumento(prev => ({
+                ...prev,
+                usarLocalizacaoAtual: value
+              }))
+              if (value) {
+                obterLocalizacaoAtual()
+              }
+            }
+            }
+          />
+        </View>
 
-        <Text style={styles.labelInput}>Número</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.numero}
-          editable={!isViewMode}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, numero: text }))}
-          placeholder="Informe o Numero da Casa "
-        />
-        <Text style={styles.labelInput}>Complemento</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.complemento}
-          editable={!isViewMode}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, complemento: text }))}
-          placeholder="Informe o complemento"
-        />
+        {documento.usarLocalizacaoAtual && (
+          <View
+            style={{
+              padding: 12,
+              borderWidth: 1,
+              borderRadius: 8,
+              marginBottom: 20,
+            }}
+          >
+            <Text>📍 Localização do reporte</Text>
+
+            <Text>{documento.descricaoLocalizacao}</Text>
+          </View>
+        )}
+
+        {!documento.usarLocalizacaoAtual && (
+          <>
+            <Text style={styles.labelInput}>CEP</Text>
+            <MaskedTextInput
+              mask="99999-999"
+              keyboardType="numeric"
+              value={documento.cep}
+              onChangeText={(text) => {
+                setDocumento(prev => ({ ...prev, cep: text }));
+
+                const cepLimpo = text.replace(/\D/g, '');
+
+                if (cepLimpo.length === 8) {
+                  buscarCep(text);
+                }
+              }}
+              style={styles.input}
+              placeholder="00000-000"
+            />
+
+            <Text style={styles.labelInput}>Cidade</Text>
+            <TextInput
+              style={styles.input}
+              value={documento.cidade}
+              editable={!isViewMode}
+              onChangeText={(text) => setDocumento(prev => ({ ...prev, cidade: text }))}
+              placeholder="Informe a Cidade"
+            />
+            <Text style={styles.labelInput}>Bairro</Text>
+            <TextInput
+              style={styles.input}
+              value={documento.bairro}
+              editable={!isViewMode}
+              onChangeText={(text) =>
+                setDocumento(prev => ({
+                  ...prev,
+                  bairro: text
+                }))
+              }
+              placeholder="Informe o Bairro"
+            />
+            <Text style={styles.labelInput}>Logradouro</Text>
+            <TextInput
+              style={styles.input}
+              value={documento.logradouro}
+              editable={!isViewMode}
+              onChangeText={(text) => setDocumento(prev => ({ ...prev, logradouro: text }))}
+              placeholder="Informe o Logradouro"
+            />
+
+            <Text style={styles.labelInput}>Número</Text>
+            <TextInput
+              style={styles.input}
+              value={documento.numero}
+              editable={!isViewMode}
+              onChangeText={(text) => setDocumento(prev => ({ ...prev, numero: text }))}
+              placeholder="Informe o Numero da Casa "
+            />
+            <Text style={styles.labelInput}>Complemento</Text>
+            <TextInput
+              style={styles.input}
+              value={documento.complemento}
+              editable={!isViewMode}
+              onChangeText={(text) => setDocumento(prev => ({ ...prev, complemento: text }))}
+              placeholder="Informe o complemento"
+            />
+          </>
+        )}
+
         <Text style={styles.labelInput}>Descrição</Text>
         <TextInput
           style={styles.textArea}
