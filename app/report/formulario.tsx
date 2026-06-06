@@ -9,7 +9,7 @@ import { MaskedTextInput } from 'react-native-mask-text';
 import { Reporte } from '../(tabs)/report';
 import { reporteService } from '../services/reporte.service';
 
-export default function CadastroScreen() {
+export default function ReporteFormularioScreen() {
 
 
   const parametro: any = useLocalSearchParams();
@@ -27,7 +27,7 @@ export default function CadastroScreen() {
     complemento: '',
     descricao: '',
     fotoUrl: '',
-    categoria:null
+    categoria: null
   };
   const categoryOptions = [
     {
@@ -131,23 +131,27 @@ export default function CadastroScreen() {
           onChangeText={(text) => setDocumento(prev => ({ ...prev, assunto: text }))}
           placeholder="Digite o assunto"
         />
-        <Text style={styles.labelInput}>Categoria</Text>
-        <Picker
-          selectedValue={documento.categoria}
-          
-          onValueChange={(value) =>
-            setDocumento(prev => ({
-              ...prev,
-              categoria:value ? Number(value) : null
-            }))
-          }
-        >
-          <Picker.Item label="Selecione uma opção..." value={null} />
-          {categoryOptions.map((option: any) => (
-            <Picker.Item label={option.label} value={option.value} />
-          )
-          )}
-        </Picker>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={documento.categoria}
+            enabled={!isViewMode}
+            onValueChange={(value) =>
+              setDocumento(prev => ({
+                ...prev,
+                categoria: value ? Number(value) : null
+              }))
+            }
+          >
+            <Picker.Item label="Selecione uma opção..." value={null} />
+            {categoryOptions.map(option => (
+              <Picker.Item
+                key={option.value}
+                label={option.label}
+                value={option.value}
+              />
+            ))}
+          </Picker>
+        </View>
         <Text style={styles.labelInput}>CEP</Text>
         <MaskedTextInput
           mask="99999-999"
@@ -377,5 +381,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 150,                // Define uma altura fixa para a área de texto
     backgroundColor: '#fff',
-  }
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
 });
