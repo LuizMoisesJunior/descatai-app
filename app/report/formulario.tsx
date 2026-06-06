@@ -1,22 +1,14 @@
 import { Picker } from '@react-native-picker/picker';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { MaskedTextInput } from 'react-native-mask-text';
+import { Reporte } from '../(tabs)/report';
 import { reporteService } from '../services/reporte.service';
-export interface Reporte {
-  id: string;
-  assunto: string;
-  categoria?: number
-  cep?: string
-  cidade?: string
-  logradouro?: string
-  rua?: string
-  numero?: string
-  complemento?: string
-  descricao?: string
-}
+
 export default function CadastroScreen() {
 
 
@@ -24,17 +16,19 @@ export default function CadastroScreen() {
   type FormMode = 'create' | 'edit' | 'view';
   const mode = (parametro.mode as FormMode) || 'create';
 
-const emptyDocument: Reporte = {
-  id: '',
-  assunto: '',
-  cep: '',
-  cidade: '',
-  logradouro: '',
-  rua: '',
-  numero: '',
-  complemento: '',
-  descricao: ''
-};
+  const emptyDocument: Reporte = {
+    id: '',
+    assunto: '',
+    cep: '',
+    cidade: '',
+    logradouro: '',
+    rua: '',
+    numero: '',
+    complemento: '',
+    descricao: '',
+    fotoUrl: '',
+    categoria:null
+  };
   const categoryOptions = [
     {
       value: 1,
@@ -55,7 +49,6 @@ const emptyDocument: Reporte = {
   const isEditMode = mode === 'edit';
   const isCreateMode = mode === 'create';
 
-
   const voltar = () => {
     router.back()
   }
@@ -67,13 +60,40 @@ const emptyDocument: Reporte = {
     //salvar
     if (isCreateMode) {
       await reporteService.inserir(documento)
-    }else if(isEditMode){
+    } else if (isEditMode) {
       await reporteService.atualizar(documento)
     }
 
     voltar()
 
   }
+
+
+  const handleTakePhoto = async () => {
+    const permission =
+      await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      alert('É necessário permitir o acesso à câmera.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      /* 
+      implementar chyamada do service que cadastrar a imagem e gera link para ela
+      */
+      setDocumento(prev => ({
+        ...prev,
+        fotoUrl: result.assets[0].uri
+      }));
+    }
+  };
 
   const carregarDocumento = async () => {
 
@@ -87,6 +107,7 @@ const emptyDocument: Reporte = {
         setDocumento(reporte);
       }
 
+
       return;
     }
 
@@ -98,11 +119,9 @@ const emptyDocument: Reporte = {
 
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.conteudoFormulario}
-    >
-      <View style={styles.conteudoModal}>
+    <View
+      style={styles.container}>
+      <ScrollView style={styles.conteudoFormulario} contentContainerStyle={styles.conteudoFormularioScrolavel}>
 
         <Text style={styles.labelInput}>Assunto</Text>
         <TextInput
@@ -115,10 +134,11 @@ const emptyDocument: Reporte = {
         <Text style={styles.labelInput}>Categoria</Text>
         <Picker
           selectedValue={documento.categoria}
+          
           onValueChange={(value) =>
             setDocumento(prev => ({
               ...prev,
-              categoria: value
+              categoria:value ? Number(value) : null
             }))
           }
         >
@@ -190,21 +210,53 @@ const emptyDocument: Reporte = {
           numberOfLines={6}         // Altura inicial baseada em linhas (relevante para Android)
           textAlignVertical="top"   // Garante que o texto comece no topo (essencial para Android)
         />
-        <View style={styles.containerBotoesModal}>
 
-          <TouchableOpacity style={[styles.botaoModal, styles.botaoFechar]} onPress={voltar}>
-            <Text style={styles.textoBotaoModal}>Voltar</Text>
+
+        <Text>Foto do descarte</Text>
+
+        <TouchableOpacity
+          onPress={handleTakePhoto}
+          disabled={isViewMode}
+          style={{
+            padding: 12,
+            borderWidth: 1,
+            borderRadius: 8,
+            marginTop: 8,
+          }}
+        >
+          <Text>
+            {documento.fotoUrl ? 'Trocar foto' : 'Tirar foto'}
+          </Text>
+        </TouchableOpacity>
+
+        {documento.fotoUrl && (
+          <Image
+            source={{ uri: documento.fotoUrl }}
+            style={{
+              width: '100%',
+              height: 200,
+              marginTop: 12,
+              borderRadius: 8,
+            }}
+          />
+        )}
+
+      </ScrollView>
+      <View style={styles.containerBotoesModal}>
+
+        <TouchableOpacity style={[styles.botaoModal, styles.botaoFechar]} onPress={voltar}>
+          <Text style={styles.textoBotaoModal}>Voltar</Text>
+        </TouchableOpacity>
+        {!isViewMode ?
+          <TouchableOpacity style={[styles.botaoModal, styles.botaoSalvar]} onPress={salvar}>
+            <Text style={styles.textoBotaoModal}>Salvar</Text>
           </TouchableOpacity>
-          {!isViewMode ?
-            <TouchableOpacity style={[styles.botaoModal, styles.botaoSalvar]} onPress={salvar}>
-              <Text style={styles.textoBotaoModal}>Salvar</Text>
-            </TouchableOpacity>
-            : null
-          }
+          : null
+        }
 
-        </View>
       </View>
-    </ScrollView>
+    </View>
+
   );
 }
 
@@ -223,19 +275,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',
-  },
-  cardItem: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 12,
-    width: '100%',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   textoItem: {
     fontSize: 16,
@@ -278,15 +317,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
   },
-  conteudoFormulario: {
+  conteudoFormularioScrolavel: {
     paddingBottom: 40,
   },
-  conteudoModal: {
+  conteudoFormulario: {
     width: '85%',
     padding: 20,
     backgroundColor: 'white',
     borderRadius: 16,
-    alignItems: 'stretch',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,

@@ -6,7 +6,7 @@ import { reporteService } from '../services/reporte.service';
 export interface Reporte {
   id: string;
   assunto: string;
-  categoria?: number
+  categoria?: number | null
   cep?: string
   cidade?: string
   logradouro?: string
@@ -14,6 +14,8 @@ export interface Reporte {
   numero?: string
   complemento?: string
   descricao?: string
+
+  fotoUrl?: string;
 }
 
 export interface AcaoItem {
