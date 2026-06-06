@@ -7,6 +7,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { ScrollView } from 'react-native-gesture-handler';
 import { MaskedTextInput } from 'react-native-mask-text';
 import { Reporte } from '../(tabs)/report';
+import { cepService } from '../services/cep.service';
 import { reporteService } from '../services/reporte.service';
 
 export default function ReporteFormularioScreen() {
@@ -21,8 +22,8 @@ export default function ReporteFormularioScreen() {
     assunto: '',
     cep: '',
     cidade: '',
+    bairro: '',
     logradouro: '',
-    rua: '',
     numero: '',
     complemento: '',
     descricao: '',
@@ -95,6 +96,38 @@ export default function ReporteFormularioScreen() {
     }
   };
 
+
+  async function buscarCep(valor: string) {
+    const cepLimpo = valor.replace(/\D/g, '');
+
+    if (cepLimpo.length !== 8) return;
+    console.log('cep')
+
+    try {
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cepLimpo}/json/`
+      );
+
+      const data = await cepService.buscar(cepLimpo)
+      if (!data) {
+        throw "cep invalido"
+      }
+      let logradouro = data.logradouro;
+      let bairro = data.bairro;
+      let cidade = data.cidade;
+      console.log(data)
+      setDocumento(prev => ({
+        ...prev,
+        logradouro,
+        bairro,
+        cidade,
+      }));
+    } catch (error) {
+
+      console.error(error);
+    }
+  }
+
   const carregarDocumento = async () => {
 
     if (parametro.id) {
@@ -157,7 +190,15 @@ export default function ReporteFormularioScreen() {
           mask="99999-999"
           keyboardType="numeric"
           value={documento.cep}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, cep: text }))}
+          onChangeText={(text) => {
+            setDocumento(prev => ({ ...prev, cep: text }));
+
+            const cepLimpo = text.replace(/\D/g, '');
+
+            if (cepLimpo.length === 8) {
+              buscarCep(text);
+            }
+          }}
           style={styles.input}
           placeholder="00000-000"
         />
@@ -170,6 +211,19 @@ export default function ReporteFormularioScreen() {
           onChangeText={(text) => setDocumento(prev => ({ ...prev, cidade: text }))}
           placeholder="Informe a Cidade"
         />
+        <Text style={styles.labelInput}>Bairro</Text>
+        <TextInput
+          style={styles.input}
+          value={documento.bairro}
+          editable={!isViewMode}
+          onChangeText={(text) =>
+            setDocumento(prev => ({
+              ...prev,
+              bairro: text
+            }))
+          }
+          placeholder="Informe o Bairro"
+        />
         <Text style={styles.labelInput}>Logradouro</Text>
         <TextInput
           style={styles.input}
@@ -177,14 +231,6 @@ export default function ReporteFormularioScreen() {
           editable={!isViewMode}
           onChangeText={(text) => setDocumento(prev => ({ ...prev, logradouro: text }))}
           placeholder="Informe o Logradouro"
-        />
-        <Text style={styles.labelInput}>Rua</Text>
-        <TextInput
-          style={styles.input}
-          value={documento.rua}
-          editable={!isViewMode}
-          onChangeText={(text) => setDocumento(prev => ({ ...prev, rua: text }))}
-          placeholder="Informe a Rua"
         />
 
         <Text style={styles.labelInput}>Número</Text>

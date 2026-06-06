@@ -14,7 +14,7 @@ export interface Reporte {
   numero?: string
   complemento?: string
   descricao?: string
-
+  bairro?:string
   fotoUrl?: string;
 }
 
