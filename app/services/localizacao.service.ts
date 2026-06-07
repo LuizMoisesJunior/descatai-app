@@ -46,40 +46,54 @@ class LocationService {
     };
   }
 
-  async obterLocalizacaoAtual(): Promise<Localizacao> {
-    const { status } =
-      await Location.requestForegroundPermissionsAsync();
+async obterLocalizacaoAtual(): Promise<Localizacao> {
+  const { status } =
+    await Location.requestForegroundPermissionsAsync();
 
-    if (status !== 'granted') {
-      throw new Error('Permissão negada');
-    }
+  if (status !== 'granted') {
+    throw new Error('Permissão negada');
+  }
 
-    const position =
-      await Location.getCurrentPositionAsync();
+  const position =
+    await Location.getCurrentPositionAsync();
 
-    const { latitude, longitude } = position.coords;
+  const { latitude, longitude } = position.coords;
 
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-    );
-
-    const data = await response.json();
-
-    const endereco =
-      `${data.address.road || ''}, ${data.address.house_number || ''} ${data.address.suburb || ''} - ${data.address.municipality || ''}  ${data.address.state || ''}`.trim();
-
-    return {
+  const enderecos =
+    await Location.reverseGeocodeAsync({
       latitude,
       longitude,
-      endereco,
+    });
 
-      cep: data.address.postcode,
-      cidade: data.address.municipality,
-      bairro: data.address.suburb,
-      logradouro: data.address.road,
-      numero: data.address.house_number,
-    };
-  }
+  const endereco = enderecos[0];
+
+  return {
+    latitude,
+    longitude,
+
+    endereco:
+      endereco.formattedAddress ??
+      `${endereco.street}, ${endereco.streetNumber}`,
+
+    cep: endereco.postalCode ?? '',
+    cidade:
+      endereco.city ??
+      endereco.subregion ??
+      '',
+
+    bairro:
+      endereco.district ??
+      '',
+
+    logradouro:
+      endereco.street ??
+      '',
+
+    numero:
+      endereco.streetNumber ??
+      '',
+  };
+}
 }
 
 export const localizacaoService = new LocationService();
