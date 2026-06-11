@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "descatai-app",
-    "slug": "descatai-app",
+    "name": "descartai-app",
+    "slug": "descartai-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "descataiapp",
+    "scheme": "descartaiapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
