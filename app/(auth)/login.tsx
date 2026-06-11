@@ -12,11 +12,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Alert,
-  ActivityIndicator
+  View
 } from "react-native";
-import { supabase } from "../../services/supabase";
+import { supabase } from "../services/supabase";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -34,6 +32,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
+      if(!supabase) return
       const { data, error } = await supabase
         .from("perfis")
         .select("*")

@@ -123,7 +123,7 @@ export default function CadastroScreen() {
       }
 
       Alert.alert("Sucesso", "Reporte salvo com sucesso!");
-      back();
+      voltar();
     } catch (error: any) {
       console.error("Erro ao salvar no Supabase:", error);
       Alert.alert(
