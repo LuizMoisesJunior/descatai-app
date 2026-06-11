@@ -52,6 +52,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Feather name="map" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
+        }}
+      />
       <Tabs.Screen name="explore" options={{ href: null }} />
       <Tabs.Screen name="ecopontos/reciclaveis" options={{ href: null }} />
       <Tabs.Screen name="ecopontos/eletronicos" options={{ href: null }} />
