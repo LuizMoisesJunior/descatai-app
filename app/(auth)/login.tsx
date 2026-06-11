@@ -13,6 +13,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
+  ActivityIndicator
 } from "react-native";
 import { supabase } from "../../services/supabase";
 

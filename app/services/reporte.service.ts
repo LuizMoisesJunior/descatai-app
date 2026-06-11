@@ -1,38 +1,70 @@
 import { Reporte } from '../(tabs)/report';
+import { supabase } from './supabase';
 
 export const reporteService = {
 
-
     async listar() {
-        return mockData;
+        const { data, error } = await supabase
+            .from('reportes')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao listar reportes:', error);
+            return [];
+        }
+        return data as Reporte[];
     },
 
     async buscarPorId(id: string) {
-        return mockData.find(x => x.id === id);
+        const { data, error } = await supabase
+            .from('reportes')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error('Erro ao buscar reporte:', error);
+            return null;
+        }
+        return data as Reporte;
     },
 
-    async inserir(documento: Reporte) {
-        if(!documento.id){
-            documento.id =Date.now().toString();
+    async inserir(documento: Omit<Reporte, 'id'>) {
+        const { data, error } = await supabase
+            .from('reportes')
+            .insert([documento])
+            .select();
+
+        if (error) {
+            console.error('Erro ao inserir reporte:', error);
+            throw error;
         }
-        mockData.push(documento)
+        return data[0];
     },
+
     async atualizar(documento: Reporte) {
-        let index = mockData.findIndex((item: Reporte) => item.id === documento.id);
-        if (index >= 0) {
-            mockData[index] = documento
-        } else {
-            await this.inserir(documento)
+        const { error } = await supabase
+            .from('reportes')
+            .update(documento)
+            .eq('id', documento.id);
+
+        if (error) {
+            console.error('Erro ao atualizar reporte:', error);
+            throw error;
         }
     },
+
     async remover(id: string) {
-        let index = mockData.findIndex((item: Reporte) => item.id === id);
-        mockData.splice(index, 1)
+        const { error } = await supabase
+            .from('reportes')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Erro ao remover reporte:', error);
+            throw error;
+        }
     }
 
 };
-export let mockData: Reporte[] = [
-    { id: '1', assunto: 'Lixo na água' },
-    { id: '2', assunto: 'escombros perto da escola' },
-    { id: '3', assunto: 'Sacolas na grama' },
-]
