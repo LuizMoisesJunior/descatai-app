@@ -1,6 +1,10 @@
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,7 +16,7 @@ import {
   Alert,
   ActivityIndicator
 } from "react-native";
-import { supabase } from "../services/supabase";
+import { supabase } from "../../services/supabase";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,6 +24,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [secureMode, setSecureMode] = useState(true);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -30,15 +35,16 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('perfis')
-        .select('*')
-        .eq('email', email.trim().toLowerCase())
-        .eq('senha', password) 
+        .from("perfis")
+        .select("*")
+        .eq("email", email.trim().toLowerCase())
+        .eq("senha", password)
         .single();
 
       if (error || !data) {
         Alert.alert("Erro", "E-mail ou senha incorretos.");
       } else {
+        await AsyncStorage.setItem("@usuario_logado", JSON.stringify(data));
         router.replace("/(tabs)");
       }
     } catch (error) {
@@ -56,11 +62,11 @@ export default function LoginScreen() {
     >
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-            <Image 
-                source={require("../../assets/images/logo.png")} 
-                style={styles.logo}
-                resizeMode="contain"
-            />
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <Text style={styles.subtitle}>Entrar na sua conta</Text>
@@ -77,19 +83,31 @@ export default function LoginScreen() {
         />
 
         <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite sua senha"
-          placeholderTextColor="#757575"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.inputSenhaContainer}>
+          <TextInput
+            style={styles.inputSenha}
+            placeholder="Digite sua senha"
+            placeholderTextColor="#757575"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={secureMode}
+          />
+          <TouchableOpacity
+            style={styles.botaoOlho}
+            onPress={() => setSecureMode(!secureMode)}
+          >
+            <Ionicons
+              name={secureMode ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#757575"
+            />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity 
-            style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
-            onPress={handleLogin}
-            disabled={loading}
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+          onPress={handleLogin}
+          disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="#FFF" />
@@ -99,7 +117,12 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push({ pathname: "/usuarios/formulario", params: { mode: 'create' } })}
+          onPress={() =>
+            router.push({
+              pathname: "/usuarios/formulario",
+              params: { mode: "create" },
+            })
+          }
           style={styles.footerContainer}
         >
           <Text style={styles.registerLink}>
@@ -123,25 +146,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30
+    alignItems: "center",
+    marginBottom: 30,
   },
   logo: {
     width: 150,
     height: 150,
-    marginBottom: 10
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 20,
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: "Poppins_600SemiBold",
     color: "#333333",
     textAlign: "center",
     marginBottom: 32,
   },
   label: {
     fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
-    color: "#333",
+    fontFamily: "Poppins_600SemiBold",
+    color: "#33",
     marginBottom: 6,
   },
   input: {
@@ -151,9 +174,31 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
     fontSize: 16,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: "Poppins_400Regular",
     color: "#000",
     backgroundColor: "#F9F9F9",
+  },
+  inputSenhaContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D1D1",
+    borderRadius: 8,
+    backgroundColor: "#F9F9F9",
+    marginBottom: 16,
+  },
+  inputSenha: {
+    flex: 1,
+    padding: 14,
+    fontSize: 16,
+    fontFamily: "Poppins_400Regular",
+    color: "#000",
+  },
+  botaoOlho: {
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
   },
   primaryButton: {
     backgroundColor: "#0D41A2",
@@ -166,7 +211,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: "Poppins_700Bold",
   },
   footerContainer: {
     marginTop: 30,
@@ -175,10 +220,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
     fontSize: 14,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: "Poppins_400Regular",
   },
   registerLinkBold: {
     color: "#5BB732",
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: "Poppins_700Bold",
   },
 });
