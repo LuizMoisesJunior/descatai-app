@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { supabase } from "../services/supabase";
+import { supabase } from "../../services/supabase";
 
 export default function LoginScreen() {
   const router = useRouter();
